@@ -1,0 +1,580 @@
+﻿@using System.Collections.Generic
+@using Microsoft.AspNetCore.Http
+@using Microsoft.AspNetCore.Http.Authentication
+@using BizMall.ViewModels.AccountViewModels
+
+@model BizMall.ViewModels.AdminCompanyArticles.CreateEditArticleViewModel
+@{
+    ViewData["Title"] = "Новая статья";
+    Layout = "_AdminLayout";
+}
+
+<h3>@ViewData["Title"]</h3>
+<form asp-controller="AdminArticles" asp-action="EditArticle" method="post" enctype="multipart/form-data" class="form-horizontal" role="form">
+    <hr />
+    <!--Id добавляемого/редактируемого товара-->
+    @if (Model.Id != 0)
+    {
+        <input asp-for="Id" type="hidden" class="form-control" id="Id" readonly="readonly" Value ="@Model.Id" />
+    }
+    <!--НАИМЕНОВАНИЕ-->
+    <div class="form-group">
+        <label asp-for="Title" class="col-md-2 control-label">Наименование</label>
+        <div class="col-md-10" >
+            <input asp-for="Title" class="form-control col-md-10" id="Title" placeholder="Наименование"  Value ="@Model.Title"/>
+            @*<span asp-validation-for="Title" class="text-danger"></span>*@
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label class="col-md-2 control-label"></label>
+        <div class="col-md-10">
+            <a class='btn btn-default col-md-2 ' onclick="translitTitle();" style="margin-left: 15px;">Транслит =></a>
+        </div>
+    </div>
+    
+    <!--НАИМЕНОВАНИЕ (ЛАТ)-->
+    <div class="form-group">
+        <label asp-for="EnTitle" class="col-md-2 control-label">Наименование(латиница)</label>
+        <div class="col-md-10">
+            <input asp-for="EnTitle" class="form-control col-md-10" id="EnTitle" placeholder="Наименование(латиница)" Value="@Model.EnTitle" />
+            @*<span asp-validation-for="Title" class="text-danger"></span>*@
+        </div>
+    </div>
+         
+    <!--КАТЕГОРИИ в них же и КЛЮЧЕВИКИ-->
+    @await Component.InvokeAsync("AllCategoriesForEditing", new{ cegvm = Model } )
+
+    <!--ОПИСАНИЕ-->
+    <div class="form-group">
+            <label asp-for="Description" class="col-md-2 control-label" >Описание</label>
+            <label asp-for="Description" class="col-md-7 control-label">Ключевики</label>
+    </div>
+    <div class="form-group">
+        <div class="col-md-6">
+            <textarea asp-for="Description" class="form-control" id="Description" style="resize: vertical;" placeholder="Описание" Value="@Model.Description" rows="30"></textarea>
+            <br />
+            <a class='btn btn-default col-md-5 ' onclick="analyzeDecription();" style="margin-left: 15px;">Анализировать =></a>
+            <br />
+            <br />
+
+            <br />
+        </div>
+        <div class="col-md-6">
+            <!--Ключевики-->
+            <div style="margin-left:13px;margin-right:13px; margin-bottom:10px;" class="col-md-5">
+                <b>ДЛЯ САЙТА: </b><br />
+                <div style="border:1px solid #dcd6d6; border-radius:5px;padding:5px;" id="sitekws">
+                    @if (ViewBag.SiteKws != null)
+                    {
+                        @foreach (var item in ViewBag.SiteKws)
+                        {
+                            var str = item.kw + ", ";
+                            @str; 
+                        }
+                    }
+                </div>
+            </div>
+            <div style="margin-left:13px;margin-right:13px; margin-bottom:10px;" class="col-md-5">
+                <b>ДЛЯ КАТЕГОРИИ: </b><br />
+                <div id="categoryKws" style="border:1px solid #dcd6d6; border-radius:5px;padding:5px;">
+
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="form-group">
+        <div class="col-md-12">
+            <div id="analizedText"></div>
+        </div>
+    </div>
+
+
+   
+    <!--ССЫЛКА-->
+    <div class="form-group">
+        <label asp-for="Link" class="col-md-2 control-label">Ссылка</label>
+        <div class="col-md-10">
+            <textarea asp-for="Link" class="form-control" id="Link" style="resize: vertical;" placeholder="Ссылка" Value="@Model.Link"></textarea>
+            @*<span asp-validation-for="Description" class="text-danger"></span>*@
+        </div>
+    </div>
+    
+    <!--HASHTAGS-->
+    <div class="form-group">
+        <label asp-for="HashTags" class="col-md-2 control-label">Хэш-теги</label>
+        <div class="col-md-10">
+            <textarea asp-for="HashTags" class="form-control" id="HashTags" style="resize: vertical;" placeholder="Хэш-теги" Value="@Model.HashTags"></textarea>
+            @*<span asp-validation-for="Description" class="text-danger"></span>*@
+        </div>
+    </div>
+
+     <!--ИЗОБРАЖЕНИЯ-->
+    <div class="form-group">
+        <label class="col-md-2 control-label">Изображения</label>
+        @if (Model.MainImageInBase64 == null)
+        {
+            <div class="form-group">
+                <div class="col-md-8">
+                    <div id="images">
+                    </div>
+                </div>
+            </div>
+        }
+        else
+        {
+            <div class="form-group">
+                <div class="col-md-8">
+                    <div id="images">
+                        @foreach (var imageViewModel in Model.ImageViewModels)
+                        {
+                            <div style="float:left;position: relative;margin-left:15px;margin-top:10px;" id="imgthumb_@imageViewModel.Id" class="imagethumbcell">
+                                <img class="thumb" src='@imageViewModel.ImageInBase64' />
+                                <div style="position:absolute; left:70px; top:-10px;" id="delbtn_@imageViewModel.Id" class="imagedeletebuttoncell">
+                                    <a class='btn btn-default' onclick="deleteGoodImage('@imageViewModel.goodImageIds');"><span class="imagedeletebutton">x</span></a>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        }
+        <div class="col-md-2"></div>
+        <div class="form-group">
+            <div class="col-md-3">
+                <a class='btn btn-default' style="height:35px; margin-bottom:5px;margin-left:25px;">
+                    Добавить изображение ...
+                    <input type="file"
+                           id="loadfile"
+                           name="newimages"
+                           style="position: absolute;z-index: 2; top: 0; left: 0; opacity: 0; background-color: transparent;color: transparent;"
+                           onchange='saveImage();'>
+                </a>
+            </div>
+            <input asp-for="goodImagesIds" type="hidden" id="goodImagesIds" readonly="readonly" value="@Model.goodImagesIds" />
+            <input asp-for="addedImagesIds" type="hidden" id="addedImagesIds" readonly="readonly" value="@Model.addedImagesIds" />
+            <input asp-for="deletedImagesIds" type="hidden" id="deletedImagesIds" readonly="readonly" value="@Model.deletedImagesIds" />
+        </div>
+    </div>
+    
+    <!--СООБЩЕНИЯ ВАЛИДАЦИИ-->
+    <div class="form-group">
+        <label class="col-md-2 control-label"></label>
+        <div class="col-md-10">
+            <div asp-validation-summary="All" class="text-danger"></div>
+        </div>
+    </div>  
+
+    <div class="form-group">
+        <div class="col-md-offset-2 col-md-10 text-right">
+            <button type="submit" class="btn btn-primary  col-md-2" style="margin-top: 5px;">Сохранить</button>
+            <a class='btn btn-default col-md-2 ' onclick="restoreImagesAndBack();" style="margin-left: 5px; margin-top: 5px;">Назад</a>
+            @*<a class='btn btn-default col-md-2 ' style="margin-left: 5px; margin-top: 5px;">Назад</a>*@
+        </div>
+    </div>
+</form>
+
+<script type="text/javascript">
+    var arrru = new Array('Я', 'я', 'Ю', 'ю', 'Ч', 'ч', 'Ш', 'ш', 'Щ', 'щ', 'Ж', 'ж', 'А', 'а', 'Б', 'б', 'В', 'в', 'Г', 'г', 'Д', 'д', 'Е', 'е', 'Ё', 'ё', 'З', 'з', 'И', 'и', 'Й', 'й', 'К', 'к', 'Л', 'л', 'М', 'м', 'Н', 'н', 'О', 'о', 'П', 'п', 'Р', 'р', 'С', 'с', 'Т', 'т', 'У', 'у', 'Ф', 'ф', 'Х', 'х', 'Ц', 'ц', 'Ы', 'ы', 'Ь', 'ь', 'Ъ', 'ъ', 'Э', 'э');
+
+    var arren = new Array('ya', 'ya', 'yu', 'yu', 'ch', 'ch', 'sh', 'sh', 'sh', 'sh', 'zh', 'zh', 'a', 'a', 'b', 'b', 'v', 'v', 'g', 'g', 'd', 'd', 'e', 'e', 'e', 'e', 'z', 'z', 'i', 'i', 'j', 'j', 'k', 'k', 'l', 'l', 'm', 'm', 'n', 'n', 'o', 'o', 'p', 'p', 'r', 'r', 's', 's', 't', 't', 'u', 'u', 'f', 'f', 'h', 'h', 'c', 'c', 'y', 'y', '', '', '', '', 'e', 'e');
+    function cyrill_to_latin(text){
+        for (var i = 0; i < arrru.length; i++) {
+            var reg = new RegExp(arrru[i], "g");
+            text = text.replace(reg, arren[i]);
+        }
+        return text;
+    }
+
+    function latin_to_cyrill(id){
+        var text = $("#" + id).html();
+        for (var i = 0; i < arren.length; i++) {
+            var reg = new RegExp(arren[i], "g");
+            text = text.replace(reg, arrru[i]);
+        }
+        $("#" + id).html(text);
+    }
+
+    function translitTitle(){
+        var originalTitle = $("#Title").val();
+
+        var translitTitle = cyrill_to_latin(originalTitle);        
+
+        words = translitTitle.split(" ");
+
+        var result = "";
+        words.forEach(function (item, i, words) {
+            var word = item;
+            result += word + "_";
+        });
+
+        result = result.substr(0, result.length - 1);
+
+        $("#EnTitle").val(result);
+    }
+
+    function unique(arr) {
+        var obj = {};
+
+        for (var i = 0; i < arr.length; i++) {
+            var str = arr[i];
+            obj[str] = true; // запомнить строку в виде свойства объекта
+        }
+
+        return Object.keys(obj); // или собрать ключи перебором для IE8-
+    }
+
+    function analyzeDecription()
+    {
+        var initialtext = $("#Description").val();
+
+
+        var arrpurekws = [];
+        //формирование массива ключевиков сайта
+        var sitekws = $("#sitekws").html();
+        var arrsitekws = sitekws.split(",");
+
+        arrsitekws.forEach(function (item, i, arrsitekws) {
+            item = item.replace(/^\s*/, '').replace(/\s*$/, '');
+            arrpurekws.push(item);
+        });
+
+        //формирование массива ключевиков категории
+        var sitekws = $("#categoryKws").html();
+        var arrcatkws = sitekws.split(",");
+        arrcatkws.forEach(function (item, i, arrcatkws) {
+            item = item.replace(/^\s*/, '').replace(/\s*$/, '');
+            arrpurekws.push(item);
+        });
+
+        //выделение ключевиков в тексте и отображение текста с выделенными ключевиками
+        var count = 0;
+        var foundkws = [];
+        arrpurekws.forEach(function (item, i, arrpurekws) {
+            if (initialtext.indexOf(item)>0)
+            {
+                count++;
+                foundkws.push(item);
+            }
+            initialtext = initialtext.replace(item, "<span style='font-weight:bold;'>" + item + "</span>")
+         });
+
+        $("#analizedText").html("<span style='font-size:20px;font-weght:bold;'>Всего ключевиков в тексте: " + count + "</span><br/><br/>" + initialtext);
+
+        //формирование хэштегов
+        var curhashtags = $("#HashTags").val();
+        var arrhashtags = curhashtags.split(" ");
+        var resulthashtags = [];
+
+        //добавляем добавленный хэштеги-kw
+        foundkws.forEach(function (found, i, foundkws) {
+            var foundkws = found.replace(" ", "");
+            var tmp = foundkws.indexOf(" ");
+            while (tmp!=-1)
+            {
+                foundkws = foundkws.replace(" ", "");
+                tmp = foundkws.indexOf(" ");
+            }
+            resulthashtags.push(foundkws);
+        });
+
+        //добавляем оставшиеся
+        arrhashtags.forEach(function (cur, i, arrhashtags) {
+            resulthashtags.push(cur); 
+        });
+
+        //удаляем дубликаты
+        var arrfinalhastags = unique(resulthashtags);
+
+        var strresulthashtags = "";
+        arrfinalhastags.forEach(function (item, i, arrfinalhastags) {
+            strresulthashtags += item + " ";
+        });
+
+        var curhashtags = $("#HashTags").val(strresulthashtags);
+
+    }
+
+    //заполнение списка ключевиков для категории ЕСЛИ она выбрана для редактируемой статьи
+    $(document).ready(function () {
+        var categoryId = $("#CurrentCatId").val();
+        if (categoryId != "") {
+            var formData = new FormData();
+            formData.append('CategoryId', categoryId);
+            $.ajax({
+                url: "/AdminArticles/CategoryKws/",
+                type: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                success: function (categoryKws) {
+                    var strKws = "";
+                    categoryKws.forEach(function (item, i, categoryKws) {
+                        var kw = item.kw;
+                        strKws += kw + ", ";
+                    });
+
+                    strKws = strKws.substr(0, strKws.length - 2);
+
+                    $("#categoryKws").html(strKws);
+                }
+            });
+        }
+    });
+
+    function restoreImagesAndBack() {
+        var formData = new FormData();
+        formData.append('goodImageIds', $("#goodImagesIds").val());
+        formData.append('addedImagesIds', $("#addedImagesIds").val());
+        formData.append('deletedImagesIds', $("#deletedImagesIds").val());
+        $.ajax({
+            url: "/AdminArticles/RestoreImages/",
+            type: 'POST',
+            data: formData,
+            processData: false,
+            contentType: false,
+            success: function () {
+                //ничего не надо делать кроме как вернуться назад,
+                history.back();
+            }
+        });
+    };
+
+    function deleteGoodImage(goodImageIds) {
+        var formData = new FormData();
+        formData.append('goodImageIds', goodImageIds);
+        $.ajax({
+            url: "/AdminArticles/DeleteArticleImage/",
+            type: 'POST',
+            data: formData,
+            processData: false,
+            contentType: false,
+            success: function (idOfDeletedIm){
+                //РЕДАКТИРУЕМ СПИСОК ТЕКЦЩИХ ИЗОБРАЖЕНИЙ ТОВАРА
+                //берем исходный список изображений в виде строки
+                var goodImagesIds = $("#goodImagesIds").val();
+                //получаем из этого массив
+                var tmpIdsArr = goodImagesIds.split('_');
+                //удаляем последний элемент из массива так как он пустой
+                tmpIdsArr.splice(tmpIdsArr.length-1, 1);
+                //получаем индекс удаляемого изображения в массиве и удаляем его из массива
+                var idxOfDeletedIm = tmpIdsArr.indexOf(idOfDeletedIm);
+                if (idxOfDeletedIm == -1) return;
+                tmpIdsArr.splice(idxOfDeletedIm, 1);
+                //новый список id изображений  товара
+                goodImagesIds = tmpIdsArr.join('_') + "_";
+                $("#goodImagesIds").val(goodImagesIds);
+                //удаляем из DOM
+                $("#imgthumb_" + idOfDeletedIm).remove();
+                //$("#delbtn_" + idOfDeletedIm).remove();
+                //добавляем в список удаленных
+                var tmp = $("#deletedImagesIds").val();
+                var deletedImagesIds = $("#deletedImagesIds").val() + idOfDeletedIm + "_";
+                $("#deletedImagesIds").val(deletedImagesIds);
+            }
+        });
+
+    };
+
+    function saveImage() {
+        //берем изображение
+        var image = $('#loadfile')[0].files[0];
+        //ПРОВЕРКИ
+        //если оно есть
+        if (image == undefined) return;
+        //если оно подходящего размера (не более 300Кб)
+        if (image.size > 300000) return;
+        //если расширение подходит
+        var ext = image.name.substring(image.name.lastIndexOf('.') + 1).toLowerCase();
+        if (ext != "gif" && ext != "png" && ext != "jpeg" && ext != "jpg") return;
+        //если оно подходящего типа - mimetype
+        var imageType = /^image\//;
+        if (imageType.test(image.type.match)) return;
+
+        //записываем в БД
+        var goodId = $("#Id").val();
+        var formData = new FormData();
+        formData.append('newimages', image);
+        formData.append('Id', goodId);
+        $.ajax({
+            url: "/AdminArticles/AddArticleImage/",
+            type: 'POST',
+            data: formData,
+            processData: false,
+            contentType: false,
+            success: function (image) {
+                $.ajax({
+                    url: "/AdminArticles/GetImageForThumb/" + image.id,
+                    type: 'GET',
+                    data: formData,
+                    processData: false,
+                    contentType: false,
+                    success: function (data) {
+                        //добавление в скрытое поле id изображений нового id изображения
+                        var newgoodImagesIds = $("#goodImagesIds").val() + data.id + "_";
+                        $("#goodImagesIds").val(newgoodImagesIds);
+                        var tmp = $("#addedImagesIds").val();
+                        var addedImagesIds = $("#addedImagesIds").val() + data.id + "_";
+                        $("#addedImagesIds").val(addedImagesIds);
+                        //отображение thumb только что добавленного изображения
+                        var image = "<div style='float:left;position: relative;margin-left:15px;margin-top:10px;' id='imgthumb_" + data.id + "' class = 'imagethumbcell'> \
+                                                <img class='thumb' src='" + data.imageInBase64 + "' /> \
+                                                <div style='position:absolute; left:70px; top:-10px;' id='delbtn_" + data.id + "' class ='imagedeletebuttoncell'> \
+                                                    <a class='btn btn-default' onclick = \"deleteGoodImage('" + data.goodImageIds + "');\"> \
+                                                        <span class='imagedeletebutton'>x</span> \
+                                                    </a> \
+                                                </div> \
+                                            </div>";
+                        $("#images").append(image);
+                        //var closeButton = "<div style='float:left;' id='delbtn_" + data.id + "' class ='imagedeletebuttoncell'> \
+                        //                        <a class='btn btn-default' href = '#' onclick = \"deleteGoodImage('" + data.goodImageIds + "');\"> \
+                        //                            <span class='imagedeletebutton'>x</span> \
+                        //                        </a> \
+                        //                    </div>";
+                        //$("#images").append(closeButton);
+                    }
+                });
+            }
+        });
+    };
+</script>
+
+@section Scripts {
+    @{ await Html.RenderPartialAsync("_ValidationScriptsPartial"); }
+}
+
+<!--
+    
+        function DeleteRelGoodImages() {
+            var goodId = $("#Id").val();
+            if (goodId != undefined) {
+                $.ajax({
+                    url: "/AdminCompanyGoods/DeleteRelGoodImages/?goodId=" + goodId,
+                    type: 'GET',
+                    processData: false,  
+                    contentType: false,  
+                    success: function (data) {
+                        var result = data;
+                    }
+                });
+            }
+        }
+
+-->
+<!--
+    ////делаем превью
+    if (SaveToDBSuccess == true) {
+        $.ajax({
+            url: "/AdminCompanyGoods/GetImageForThumb/" + imageFormDB.Id,
+            type: 'GET',
+                data: formData,
+            processData: false,  // tell jQuery not to process the data
+            contentType: false,  // tell jQuery not to set contentType
+            success: function (data) {
+                var img = document.createElement("img");
+                img.classList.add("thumb");
+                $("#images").append(img);
+            }
+        });
+    }
+-->
+<!--
+    //отображаем размер изображения в кб
+    var imagesizeToDisplay;
+    for (var aMultiples = ["KB", "MB"], nMultiple = 0, nApprox = image.size / 1024; nApprox > 1; nApprox /= 1024, nMultiple++)
+        imagesizeToDisplay = nApprox.toFixed(3) + " " + aMultiples[nMultiple] + " (" + image.size + " bytes)";
+    $("#fileSize").html(imagesizeToDisplay);
+-->
+<!--
+    //какие то кнопки
+    <div class="col-md-3">
+        @*<input asp-for="Image" class="form-control" id="upload-file-info" readonly="readonly" />*@
+        <input class="form-control" id="upload-file-info" readonly="readonly" />
+        @*<span class='label label-info' id="upload-file-info"></span>*@
+    </div>
+    <div class="col-md-7">
+        <a class='btn btn-default col-md-4 ' style="margin-left: 5px; margin-top: 5px;" asp-controller="AdminCompanyGoods" asp-action="AddGoodImage">Добавить выбранное</a>
+        <button type="submit" class="btn btn-primary  col-md-4 " style="margin-top: 5px;">Добавить выбранное</button>
+    </div>
+-->
+@*//var closeButton = "<td class='imagedeletebuttoncell'><a class='btn btn-default' href='DeleteGoodImage/?goodImageIds=" + data.goodImageIds + "'><span class='imagedeletebutton'>x</span></a></td>";*@
+@*<div class="col-md-2">
+</div>
+<div class="form-group">
+    <div class="col-md-6">
+        <div style="float:left;margin:5px;padding:5px; border:1px solid #ccc; border-radius:5px;">
+            <table>
+                <tr>
+                    <td>
+                        <span id="fileSize">0</span>
+                    </td>
+                </tr>
+            </table>
+        </div>
+    </div>
+</div>*@
+
+@*//var data = {
+//    Id: $("#Id").val(),
+//    Title: $("#Id").val(),
+//    Description: $("#Id").val(),
+//    Category: $("#CurrentCatName").val(),
+//    CategoryId: $("#CurrentCatId").val(),
+//    Images: $("#loadfile").files
+//    //List<ImageViewModel>
+ImageViewModels
+//    //string MainImageInBase64
+//};*@
+
+@*//formData.append('model.Id', $("#Id").val());
+    //formData.append('model.Title', $("#Id").val());
+    //formData.append('model.Description', $("#Description").val());
+    //formData.append('model.Category', $("#CurrentCatName").val());
+    //formData.append('model.CategoryId', $("#CurrentCatId").val());*@
+
+
+@*//$.ajax({
+    //    type: "POST",
+    //    url: "/AdminCompanyGoods/AddGoodImage/",
+    //    data: JSON.stringify(data),
+    //    //contentType: "application/json; charset=utf-8",
+    //    //dataType: "json",
+    //    success: function (msg) {
+    //        // Do something interesting here.
+    //    }
+    //});*@
+
+<!--
+    функция для подсчета объма загружаемых файлов и вывода из на экран
+    
+    <div>
+        <p>
+            <input id="uploadInput" type="file" name="myFiles" onchange="updateSize();" multiple>
+            selected files:
+            <span id="fileNum">
+                0
+            </span>;
+            total size:
+            <span id="fileSize">
+                0
+            </span>
+        </p>
+    </div>
+
+    function updateSize (){
+        var nBytes = 0,
+        oFiles = document.getElementById("loadfile").files,
+        nFiles = oFiles.length;
+
+        //посчитали размер всех файлов
+        for (var nFileId = 0; nFileId < nFiles; nFileId++) {nBytes += oFiles[nFileId].size;}
+        var sOutput = nBytes + " bytes";
+        // optional code for multiples approximation
+        for (var aMultiples = ["KiB", "MiB", "GiB", "TiB", "PiB", "EiB", "ZiB", "YiB"], nMultiple = 0, nApprox = nBytes / 1024; nApprox > 1; nApprox /= 1024, nMultiple++) {
+            sOutput = nApprox.toFixed(3) + " " + aMultiples[nMultiple] + " (" + nBytes + " bytes)";
+        }
+        // end of optional code
+        document.getElementById("fileNum").innerHTML = nFiles;
+        document.getElementById("fileSize").innerHTML = sOutput;
+    }
+-->
