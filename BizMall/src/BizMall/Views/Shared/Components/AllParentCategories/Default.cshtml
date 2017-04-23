@@ -1,31 +1,5 @@
 ﻿@model BizMall.Models.CompanyModels.Category
 
-<script type="text/javascript">
-
-    $(document).ready(function () {
-        $(".nestedcat").click(function () {
-            var parent = $(this).parent().parent().prev().html();
-            var spanbeg = parent.indexOf('<');
-            //вырезаем слово родительской категории и соединяем его с названием дочерней категории
-            var tmp = parent.substring(0, spanbeg).trim() + "/" + $(this).html();
-            tmp = tmp.trim();
-
-            $("#CurrentCatName").val(tmp);
-            $("#CurrentCatId").val($(this).attr('id'));
-            return;
-        });
-    });
-
-    $(document).ready(function () {
-        $(".cat").click(function () {
-            $("#CurrentCatName").val($(this).html());
-            $("#CurrentCatId").val($(this).attr('id'));
-            return;
-        });
-
-
-    });
-</script>
 <div class="form-group">
 
     <label class="col-md-2 control-label">Родительская категория</label>
@@ -66,24 +40,7 @@
             </div>
     </div>
        
-    @if (Model?.ParentCategory!= null)
-    {
-        <div class="col-md-3">
-            <label style="padding-top:20px;">Текущая родительская категория:</label><br />
-            <input class="form-control" id="CurrentCatName" readonly="readonly" value="@Model.ParentCategory.Title"/>
-            <input asp-for="@Model.ParentCategory.Id" type="hidden" class="form-control" id="CurrentCatId" readonly="readonly" value="@Model.ParentCategory.Id"/>
-            @*<span asp-validation-for="Category" class="text-danger"></span>*@
-        </div>
-    }
-    else
-    {
-        <div class="col-md-3">
-            <label style="padding-top:20px;">Родительская категория:</label><br />
-            <input class="form-control" id="CurrentCatName" readonly="readonly" />
-            <input asp-for="@Model.ParentCategory.Id" type="hidden" class="form-control" id="CurrentCatId" readonly="readonly" />
-            @*<span asp-validation-for="Category" class="text-danger"></span>*@
-        </div>
-    }
+
 
 </div>
 

@@ -61,11 +61,73 @@ namespace BizMall.Controllers
             return avm;
         }
 
-        //Главные представления
-        public IActionResult IndexCat(string Category, int Page = 1)
+        //---MAIN 
+        public IActionResult Main()
         {
+          
+            
+            ViewData["HeaderTitle"] = _settings.HeaderTitle;
+            ViewData["FooterTitle"] = _settings.FooterTitle;
+
+            return View();
+        }
+
+        public IActionResult Suggestions(CategoryType categoryType, string Category, int Page = 1)
+        {
+            if (categoryType == 0)//если переходим сюда из главной страницы
+                categoryType = CategoryType.Suggestions;
             PagingInfo pagingInfo;
-            var Items = _repositoryArticle.CategoryArticlesFullInformation(Category, Page, out pagingInfo).ToList();
+            var Items = _repositoryArticle.CategoryArticlesFullInformation(categoryType, Category, Page, out pagingInfo).ToList();
+
+            List<ArticleViewModel> ArticlesVM = new List<ArticleViewModel>();
+            foreach (var item in Items)
+            {
+                var avm = ConstructAVM(item, true);
+                ArticlesVM.Add(avm);
+            }
+
+            if (Category != null)
+            {
+                var category = _repositoryCategory.GetCategoryByName(Category);
+
+                ViewData["Title"] = _settings.ApplicationTitle + "Статьи" + category.Title;
+                ViewBag.Category = category.Title;
+                ViewBag.CategoryId = category.Id;
+
+            }
+            else
+            {
+                ViewData["Title"] = _settings.ApplicationTitle + "Статьи";
+                ViewBag.CategoryId = 0;
+            }
+
+            ViewBag.Kws = _repositoryKW.KwsForTagCloud(ViewBag.CategoryId);
+            ViewBag.ArticlesVM = ArticlesVM;
+            ViewBag.PagingInfo = pagingInfo;
+
+            ViewData["CategoryType"] = categoryType;
+            ViewData["HeaderTitle"] = _settings.HeaderTitle;
+            ViewData["FooterTitle"] = _settings.FooterTitle;
+
+
+            return View();
+        }
+
+        public IActionResult Contacts()
+        {
+            ViewData["Title"] = _settings.ApplicationTitle + "Контакты";
+            ViewData["HeaderTitle"] = _settings.HeaderTitle;
+            ViewData["FooterTitle"] = _settings.FooterTitle;
+
+            return View();
+        }
+
+        public IActionResult Articles(CategoryType categoryType, string Category, int Page = 1)
+        {
+            if (categoryType == 0) //если переходим сюда из главной страницы
+                categoryType = CategoryType.Articles;
+            PagingInfo pagingInfo;
+            var Items = _repositoryArticle.CategoryArticlesFullInformation(categoryType, Category, Page, out pagingInfo).ToList();
             
             List<ArticleViewModel> ArticlesVM = new List<ArticleViewModel>();
             foreach (var item in Items)
@@ -78,28 +140,71 @@ namespace BizMall.Controllers
             {
                 var category = _repositoryCategory.GetCategoryByName(Category);
 
-                ViewData["Title"] = _settings.ApplicationTitle + category.Title;
+                ViewData["Title"] = _settings.ApplicationTitle + "Статьи" + category.Title;
                 ViewBag.Category = category.Title;
                 ViewBag.CategoryId = category.Id;
                 
             }
             else
             {
-                ViewData["Title"] = _settings.ApplicationTitle + "Главная";
+                ViewData["Title"] = _settings.ApplicationTitle + "Статьи";
                 ViewBag.CategoryId = 0;
             }
 
             ViewBag.Kws = _repositoryKW.KwsForTagCloud(ViewBag.CategoryId);
+            ViewBag.ArticlesVM = ArticlesVM;
+            ViewBag.PagingInfo = pagingInfo;
+
+            ViewData["CategoryType"] = categoryType;
             ViewData["HeaderTitle"] = _settings.HeaderTitle;
             ViewData["FooterTitle"] = _settings.FooterTitle;
 
-            ViewBag.ArticlesVM = ArticlesVM;
-            ViewBag.PagingInfo = pagingInfo;
-            
 
             return View();
         }
 
+        public IActionResult Categories(CategoryType categoryType, string Category, int Page = 1)
+        {
+            if (categoryType == 0) //если переходим сюда из главной страницы
+                categoryType = CategoryType.Articles;
+            PagingInfo pagingInfo;
+            var Items = _repositoryArticle.CategoryArticlesFullInformation(categoryType, Category, Page, out pagingInfo).ToList();
+
+            List<ArticleViewModel> ArticlesVM = new List<ArticleViewModel>();
+            foreach (var item in Items)
+            {
+                var avm = ConstructAVM(item, true);
+                ArticlesVM.Add(avm);
+            }
+
+            if (Category != null)
+            {
+                var category = _repositoryCategory.GetCategoryByName(Category, categoryType);
+
+                ViewData["Title"] = _settings.ApplicationTitle + "Статьи" + category.Title;
+                ViewBag.Category = category.Title;
+                ViewBag.CategoryId = category.Id;
+
+            }
+            else
+            {
+                ViewData["Title"] = _settings.ApplicationTitle + "Статьи";
+                ViewBag.CategoryId = 0;
+            }
+
+            ViewBag.Kws = _repositoryKW.KwsForTagCloud(ViewBag.CategoryId);
+            ViewBag.ArticlesVM = ArticlesVM;
+            ViewBag.PagingInfo = pagingInfo;
+
+            ViewData["CategoryType"] = categoryType;
+            ViewData["HeaderTitle"] = _settings.HeaderTitle;
+            ViewData["FooterTitle"] = _settings.FooterTitle;
+
+
+            return View();
+        }
+
+        //---SEARCH
         public IActionResult Search(string searchstring, int Page = 1)
         {
             if (searchstring == null)
@@ -173,7 +278,7 @@ namespace BizMall.Controllers
             return View();
         }
 
-
+        //---ARTICLE DETATILS
         public IActionResult ArticleDetails(string articleId)
         {
             int Id = Convert.ToInt32(articleId.Substring(0, articleId.IndexOf('_')));
@@ -205,15 +310,7 @@ namespace BizMall.Controllers
             return View();
         }
 
-        public IActionResult About()
-        {
-            ViewData["Title"] = _settings.ApplicationTitle + "О проекте";
-            ViewData["HeaderTitle"] = _settings.HeaderTitle;
-            ViewData["FooterTitle"] = _settings.FooterTitle;
-
-            return View();
-        }
-
+        //---
         public IActionResult Error()
         {
             return View();
@@ -238,8 +335,6 @@ namespace BizMall.Controllers
             var categoryKws = _repositoryKW.KwsForTagCloud(CategoryId).ToList();
             return Json(categoryKws);
         }
-
-
 
     }
 }

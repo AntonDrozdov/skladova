@@ -93,29 +93,37 @@
                     if (topcat.CategoryId == null)
                     {
                         bool IsParent = false;
-                        @foreach (var cat in ViewBag.Categories){
-                            @if (cat.CategoryId== topcat.Id){
+                        @foreach (var cat in ViewBag.Categories)
+                        {
+                            @if (cat.CategoryId== topcat.Id)
+                            {
                                 IsParent = true;
                                 break;
                             }
                         }
-                        if (IsParent == true){
+                        if (IsParent == true)
+                        {
                             <div class="btn-group">
                                 <button id="btnGroupVerticalDrop" type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
                                     @topcat.Title
                                     <span class="caret"></span>
                                 </button>
                                 <ul class="dropdown-menu" role="menu" aria-labelledby="btnGroupVerticalDrop">
-                                @foreach (var chcat in ViewBag.Categories){
-                                    @if (chcat.CategoryId == topcat.Id){
-                                        <li><a class="nestedcat" role="button" id="@chcat.Id">@chcat.Title</a></li>
+                                @foreach (var chcat in ViewBag.Categories)
+                                {
+                                    @if (chcat.CategoryId == topcat.Id)
+                                    {
+                                        var title = chcat.Title + "(" + chcat.CategoryType + ")";
+                                        <li><a class="nestedcat" role="button" id="@chcat.Id">@title</a></li>
                                     }
                                 }
                                 </ul>
                             </div>
                         }
-                        if (IsParent == false){
-                            <a class="cat btn btn-default " role="button" id="@topcat.Id">@topcat.Title</a>
+                        if (IsParent == false)
+                        {
+                            var title = topcat.Title + "(" + topcat.CategoryType + ")";
+                            <a class="cat btn btn-default " role="button" id="@topcat.Id">@title</a>
                         }
                     }
                 }

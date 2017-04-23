@@ -57,7 +57,7 @@ namespace BizMall.Controllers
             if (id != 0)
                 return View(_repositoryCategory.GetCategoryById(id));
             else
-                return View(new Category());
+                return View(new Category() { CategoryType = CategoryType.News});
         }
         [HttpPost]
         public IActionResult EditCategory(Category model)

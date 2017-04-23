@@ -10,11 +10,11 @@ using BizMall.Models.CompanyModels;
 
 namespace BizMall.ViewComponents
 {
-    public class AllParentCategories : ViewComponent
+    public class AllTypeCategoriesForMain: ViewComponent
     {
         private readonly IRepositoryCategory _repositoryCategory;
 
-        public AllParentCategories(IRepositoryCategory repositoryCategory)
+        public AllTypeCategoriesForMain(IRepositoryCategory repositoryCategory)
         {
             _repositoryCategory = repositoryCategory;
         }
@@ -27,12 +27,13 @@ namespace BizMall.ViewComponents
         //    return View(cegvm);
         //}
 
-        public async Task<IViewComponentResult> InvokeAsync(CategoryType  categoryType)
+        public async Task<IViewComponentResult> InvokeAsync(CategoryType ct)
         {
-            ViewBag.Categories = _repositoryCategory.ParentCategories(categoryType).ToList();
+            ViewBag.Categories = _repositoryCategory.Categories(ct).ToList();
+            ViewBag.CategoryType = ct;
             //string[] ws = cegvm.Category.Split('/');
             //ViewBag.FW = ws[0];
-            return View();
+            return View(ct);
         }
     }
 }

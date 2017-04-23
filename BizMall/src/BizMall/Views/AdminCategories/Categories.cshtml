@@ -17,6 +17,7 @@
         <tr>
             <th>Название категории</th>
             <th>Название категории(лат.)</th>
+            <th>Тип категории</th>
             <th>Родительская категория</th>
             <th>Кол-во статей</th>
             <th>Опции</th>
@@ -32,6 +33,10 @@
                 <!--CATEGORY ENTITLE-->
                 <td>
                     @cat.EnTitle
+                </td>
+                <!--CATEGORY TYPE-->
+                <td>
+                    @cat.CategoryType
                 </td>
                 <!--PARENT CATEGORY TITLE-->
                 @if (@cat.ParentCategory != null)

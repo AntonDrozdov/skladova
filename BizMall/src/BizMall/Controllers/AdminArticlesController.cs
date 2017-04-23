@@ -27,6 +27,7 @@ namespace BizMall.Controllers
         private readonly IRepositoryArticle _repositoryArticle;
         private readonly IRepositoryImage _repositoryImage;
         private readonly IRepositoryKW _repositoryKW;
+        private readonly IRepositoryCategory _repositoryCategory;
         private readonly AppSettings _settings;
 
         public AdminArticlesController(IRepositoryUser repositoryUser,
@@ -34,6 +35,7 @@ namespace BizMall.Controllers
                                             IRepositoryArticle repositoryArticle,
                                             IRepositoryImage repositoryImage,
                                             IRepositoryKW repositoryKW,
+                                            IRepositoryCategory repositoryCategory,
                                             IOptions<AppSettings> settings)
         {
             _repositoryUser = repositoryUser;
@@ -41,6 +43,7 @@ namespace BizMall.Controllers
             _repositoryArticle = repositoryArticle;
             _repositoryImage = repositoryImage;
             _repositoryKW = repositoryKW;
+            _repositoryCategory = repositoryCategory;
             _settings = settings.Value;
         }
 
@@ -243,6 +246,7 @@ namespace BizMall.Controllers
                     Link = model.Link,
                     HashTags = model.HashTags,
                     CategoryId = Convert.ToInt32(model.CategoryId),
+                    CategoryType = _repositoryCategory.GetCategoryById(Convert.ToInt32(model.CategoryId)).CategoryType,
                     Images = relImages,
                     UpdateTime = DateTime.Now
                 },
