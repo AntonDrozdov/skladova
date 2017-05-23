@@ -43,6 +43,15 @@ namespace BizMall.ViewModels.AdminCompanyArticles
         public string Category { get; set; }
         public int? CategoryId { get; set; }
 
+        [Required(ErrorMessage = "Введите данные для Meta тега KeyWords")]
+        [StringLength(100, ErrorMessage = "Введите данные для Meta тега KeyWords", MinimumLength = 2)]
+        public string metaKeyWords { get; set; }
+
+        [Required(ErrorMessage = "Введите данные для Meta тега Description")]
+        [StringLength(100, ErrorMessage = "Введите данные для Meta тега Description", MinimumLength = 2)]
+        public string metaDescription { get; set; }
+
+
         //все про изображения
         public List<ImageViewModel> ImageViewModels { get;set;}
         public string MainImageInBase64 { get; set; }

@@ -161,8 +161,10 @@ namespace BizMall.Controllers
                     HashTags = item.HashTags,
                     Category = item.Category.Title,
                     CategoryId = item.CategoryId,
-                    Id = item.Id
-                };
+                    Id = item.Id,
+                    metaDescription = item.metaDescription,
+                    metaKeyWords = item.metaKeyWords
+            };
                 if (item.Images.Count != 0)
                 {
                     cegvm.MainImageInBase64 = FromByteToBase64Converter.GetImageBase64Src(item.Images.ToList()[0].Image);
@@ -248,7 +250,9 @@ namespace BizMall.Controllers
                     CategoryId = Convert.ToInt32(model.CategoryId),
                     CategoryType = _repositoryCategory.GetCategoryById(Convert.ToInt32(model.CategoryId)).CategoryType,
                     Images = relImages,
-                    UpdateTime = DateTime.Now
+                    UpdateTime = DateTime.Now,
+                    metaDescription = model.metaDescription,
+                    metaKeyWords = model.metaKeyWords
                 },
                 company);
                 if (model.deletedImagesIds != null)

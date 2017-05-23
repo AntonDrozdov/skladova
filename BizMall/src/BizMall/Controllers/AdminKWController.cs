@@ -58,7 +58,6 @@ namespace BizMall.Controllers
             if (searchstring == null)
                 return RedirectToAction("Kws");
 
-
             PagingInfo pagingInfo;
             var Items = _repositoryKW.SearchStringKws(searchstring, Page, out pagingInfo).ToList();
 
@@ -90,7 +89,9 @@ namespace BizMall.Controllers
                     kw = item.kw,
                     CategoryId = (item.CategoryId!=0)?item.CategoryId:0,
                     CategoryTitle = (item.Category!=null)?item.Category.Title:null,
-                    CategoryType = item.CategoryType
+                    CategoryType = item.CategoryType,
+                    metaDescription = item.metaDescription,
+                    metaKeyWords = item.metaKeyWords
                 });
             }
             else
@@ -103,7 +104,9 @@ namespace BizMall.Controllers
             {
                 Id = model.Id,
                 kw = model.kw,
-                CategoryId = (model.CategoryId != 0) ? model.CategoryId : 0
+                CategoryId = (model.CategoryId != 0) ? model.CategoryId : 0,
+                metaDescription = model.metaDescription,
+                metaKeyWords = model.metaKeyWords
             });
 
             return RedirectToAction("Kws");
